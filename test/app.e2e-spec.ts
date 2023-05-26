@@ -145,7 +145,7 @@ describe('AppController (e2e)', () => {
       },
       m12: {
         title: 'hey hey hey',
-        description: "you can't create a task with with the completed status",
+        description: "you can't create a task with the completed status",
         due_date: new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toISOString(),
         status: 'completed',
         checkpoints: [
@@ -676,7 +676,6 @@ describe('AppController (e2e)', () => {
   
   describe('GET /api/todos/{order_number}', () => {
     it("should be able to return a todo at a specific index", async () => {
-      // it better be at index 2
       const my_mock = mocks.post.m13
       await postMe(my_mock)
 
