@@ -486,7 +486,7 @@ describe('AppController (e2e)', () => {
       expect(body.id).not.toBeDefined()
     })
 
-    it("should post a ToDo without order number", async () => {
+    it("should post a ToDo without specifying an order number", async () => {
       const my_mock = mocks.post.m1
       const response = await request(app.getHttpServer())
         .get("/api/todos")
