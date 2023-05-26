@@ -298,7 +298,23 @@ describe('AppController (e2e)', () => {
             index: 1
           }
         ]
-
+      },
+      m6: {
+        order_number: 0,
+        title: 'due_date cannot be in the past',
+        description: "updated desc",
+        due_date: new Date(new Date().getTime() - 8 * 60 * 60 * 1000).toISOString(),
+        status: 'completed',
+        checkpoints: [
+          {
+            description: "do something",
+            completed: true,
+          },
+          {
+            description: "no index please",
+            completed: true,
+          }
+        ]
       }
     },
     patch: {
@@ -410,6 +426,17 @@ describe('AppController (e2e)', () => {
           },
           {
             index: -199,
+          }
+        ]
+      },
+      m7: {
+        order_number: 0,
+        due_date: new Date(new Date().getTime() - 8 * 60 * 60 * 1000).toISOString(),
+        status: 'in_progress',
+        checkpoints: [
+          {
+            description: "Write the code",
+            completed: false
           }
         ]
       }
@@ -922,6 +949,14 @@ describe('AppController (e2e)', () => {
 
     })
 
+    it("should return 400 if due_date is in the past", async () => {
+      const my_mock = mocks.put.m6
+       const response = await request(app.getHttpServer())
+        .put('/api/todos/0')
+        .send(my_mock)
+        .expect(400);
+    })
+
   });
   
   describe('PATCH /api/todos/{order_number}', () => {
@@ -1114,6 +1149,14 @@ describe('AppController (e2e)', () => {
       await request(app.getHttpServer())
         .patch('/api/todos/0')
         .send(my_mock_2)
+        .expect(400);
+    })
+
+    it("should return 400 if due_date is in the past", async () => {
+      const my_mock = mocks.patch.m7
+       const response = await request(app.getHttpServer())
+        .patch('/api/todos/0')
+        .send(my_mock)
         .expect(400);
     })
   });
