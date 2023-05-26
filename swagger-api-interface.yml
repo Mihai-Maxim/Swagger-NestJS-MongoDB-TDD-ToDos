@@ -204,7 +204,7 @@ definitions:
       checkpoints:
         type: array
         items:
-          $ref: '#/definitions/TaskCheckpoint'
+          $ref: '#/definitions/TaskCheckpointUpdate'
 
   ToDoUpdate:
     type: object
@@ -240,6 +240,17 @@ definitions:
       - description
       - is_complete
     properties:
+      description:
+        type: string
+      is_complete:
+        type: boolean
+        
+  TaskCheckpointUpdate:
+    type: object
+    properties:
+      index:
+        type: integer
+        format: int32
       description:
         type: string
       is_complete:
