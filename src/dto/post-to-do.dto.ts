@@ -43,6 +43,7 @@ function IsDueDateValid(validationOptions?: any) {
 
 export class PostTodoDto {
   @IsInt()
+  @IsOptional()
   order_number: number;
 
   @IsString()
@@ -50,14 +51,16 @@ export class PostTodoDto {
   title: string;
 
   @IsString()
+  @IsOptional()
   description: string;
 
   @IsDateString()
-  @IsDueDateValid() 
+  @IsDueDateValid()
+  @IsOptional()
   due_date: string;
 
   @IsEnum(TodoStatus)
-  status: TodoStatus;
+  status: TodoStatus = TodoStatus.InBacklog
 
   @IsArray()
   @IsOptional()
