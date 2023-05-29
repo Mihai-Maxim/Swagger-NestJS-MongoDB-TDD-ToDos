@@ -26,11 +26,11 @@ ToDos should include:
   "checkpoints": [
     {
       "description": "Write integration tests",
-      "is_complete": true
+      "completed": true
     },
     {
       "description": "Write the code",
-      "is_complete": false
+      "completed": false
     }
   ]
 }
