@@ -3,7 +3,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { TodosModule } from './todos/todos.module';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 
-console.log(process.env.MONGO_DB_STRING)
 @Module({
   imports: [
     ConfigModule.forRoot(),

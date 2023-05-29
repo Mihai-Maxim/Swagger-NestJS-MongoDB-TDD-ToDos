@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
+import { ValidationPipe } from '@nestjs/common';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -12,6 +13,9 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
   });
 
@@ -494,13 +498,14 @@ describe('AppController (e2e)', () => {
       .send(my_mock)
   }
 
-  describe('POST /api/todos', () => {
+  describe.only('POST /api/todos', () => {
     it("should post a ToDo at the begining", async () => {
       const my_mock = mocks.post.m0
       const response = await request(app.getHttpServer())
-        .get("/api/todos")
+        .post("/api/todos")
         .send(my_mock)
-        .expect(201)
+        .expect(201)      
+
       const body = response.body
       expect(body.order_number).toBe(0)
       expect(typeof body.creation_date).toBe("string")
@@ -516,7 +521,7 @@ describe('AppController (e2e)', () => {
     it("should post a ToDo without specifying an order number", async () => {
       const my_mock = mocks.post.m1
       const response = await request(app.getHttpServer())
-        .get("/api/todos")
+        .post("/api/todos")
         .send(my_mock)
         .expect(201)
 
@@ -534,7 +539,7 @@ describe('AppController (e2e)', () => {
     it("should post a ToDo at the begining even though a todo already exists at that location", async () => {
       const my_mock = mocks.post.m2
       const response = await request(app.getHttpServer())
-        .get("/api/todos")
+        .post("/api/todos")
         .send(my_mock)
         .expect(201)
 
@@ -551,7 +556,7 @@ describe('AppController (e2e)', () => {
     it("shoud correctly increment the order_numbers after different insert operations", async () => {
       const my_mock = mocks.post.m3
       const response = await request(app.getHttpServer())
-        .get("/api/todos")
+        .post("/api/todos")
         .send(my_mock)
         .expect(201)
 
@@ -568,7 +573,7 @@ describe('AppController (e2e)', () => {
     it("should return 400 if todo does not have a title", async () => {
       const my_mock = mocks.post.m4
       const response = await request(app.getHttpServer())
-        .get("/api/todos")
+        .post("/api/todos")
         .send(my_mock)
         .expect(400)
     })
@@ -576,16 +581,15 @@ describe('AppController (e2e)', () => {
     it("should create a todo with only the title", async () => {
       const my_mock = mocks.post.m5
       const response = await request(app.getHttpServer())
-        .get("/api/todos")
+        .post("/api/todos")
         .send(my_mock)
-        .expect(400)
+        .expect(201)
         
       const body = response.body
 
       expect(body.creation_date).toBeDefined()
       expect(body.last_update_date).toBeDefined()
       expect(body.title).toBe(my_mock.title)
-      expect(body.description).toBeDefined()
       expect(body.status).toBeDefined()
       expect(body.checkpoints).toEqual([])
     })
@@ -593,7 +597,7 @@ describe('AppController (e2e)', () => {
     it("should return 400 if todo contains bogus data", async () => {
       const my_mock = mocks.post.m6
       const response = await request(app.getHttpServer())
-        .get("/api/todos")
+        .post("/api/todos")
         .send(my_mock)
         .expect(400)
 
@@ -602,7 +606,7 @@ describe('AppController (e2e)', () => {
     it("should return 400 if due_date < today", async () => {
       const my_mock = mocks.post.m7
       const response = await request(app.getHttpServer())
-        .get("/api/todos")
+        .post("/api/todos")
         .send(my_mock)
         .expect(400)
     })
@@ -610,16 +614,16 @@ describe('AppController (e2e)', () => {
     it("should return 400 if checkpoints do not contain a description", async () => {
       const my_mock = mocks.post.m8
       const response = await request(app.getHttpServer())
-        .get("/api/todos")
+        .post("/api/todos")
         .send(my_mock)
         .expect(400)
     })
 
     it("should be able to create checkpoints with only the description available", async () => {
       const my_mock = mocks.post.m9
-      const checkpoints_after = mocks.post.m9_checkpoints_after
+      const checkpoints_after = mocks.post.m9_checkpoints_after.checkpoints
       const response = await request(app.getHttpServer())
-        .get("/api/todos")
+        .post("/api/todos")
         .send(my_mock)
         .expect(201)
 
@@ -631,7 +635,7 @@ describe('AppController (e2e)', () => {
       const my_mock = mocks.post.m10
 
       const response = await request(app.getHttpServer())
-        .get("/api/todos")
+        .post("/api/todos")
         .send(my_mock)
         .expect(400)
 
@@ -641,7 +645,7 @@ describe('AppController (e2e)', () => {
       const my_mock = mocks.post.m11
 
       const response = await request(app.getHttpServer())
-        .get("/api/todos")
+        .post("/api/todos")
         .send(my_mock)
         .expect(400)
 

@@ -15,7 +15,7 @@ module.exports = {
       checkpoints: [
         {
           description: 'string',
-          is_complete: true
+          completed: true
         }
       ]
     });
