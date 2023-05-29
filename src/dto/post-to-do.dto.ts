@@ -14,10 +14,9 @@ class TaskCheckpoint {
   @IsNotEmpty()
   description: string;
 
-  @IsOptional()
   @IsBoolean()
-  @Transform(({ value }) => value === undefined ? false : value)
-  completed: boolean;
+  @IsNotEmpty()
+  completed: boolean = false;
 }
 
 function IsDueDateValid(validationOptions?: any) {
@@ -54,13 +53,14 @@ export class PostTodoDto {
   description: string;
 
   @IsDateString()
-  @IsDueDateValid() // Apply custom validation decorator
+  @IsDueDateValid() 
   due_date: string;
 
   @IsEnum(TodoStatus)
   status: TodoStatus;
 
   @IsArray()
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => TaskCheckpoint)
   checkpoints: TaskCheckpoint[];
