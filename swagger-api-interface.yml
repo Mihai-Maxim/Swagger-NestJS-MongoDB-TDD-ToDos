@@ -238,11 +238,11 @@ definitions:
     type: object
     required:
       - description
-      - is_complete
+      - completed
     properties:
       description:
         type: string
-      is_complete:
+      completed:
         type: boolean
         
   TaskCheckpointUpdate:
@@ -253,5 +253,5 @@ definitions:
         format: int32
       description:
         type: string
-      is_complete:
+      completed:
         type: boolean
