@@ -494,11 +494,12 @@ describe('AppController (e2e)', () => {
   }
   const postMe = async (my_mock) => {
     const response = await request(app.getHttpServer())
-      .get("/api/todos")
+      .post("/api/todos")
       .send(my_mock)
+    
   }
 
-  describe.only('POST /api/todos', () => {
+  describe('POST /api/todos', () => {
     it("should post a ToDo at the begining", async () => {
       const my_mock = mocks.post.m0
       const response = await request(app.getHttpServer())
@@ -567,7 +568,6 @@ describe('AppController (e2e)', () => {
       expect(body.title).toBe(my_mock.title)
       expect(body.description).toBe(my_mock.description)
       expect(body.status).toBe(my_mock.status)
-      expect(body.checkpoints).toEqual([])
     })
 
     it("should return 400 if todo does not have a title", async () => {
@@ -591,7 +591,6 @@ describe('AppController (e2e)', () => {
       expect(body.last_update_date).toBeDefined()
       expect(body.title).toBe(my_mock.title)
       expect(body.status).toBeDefined()
-      expect(body.checkpoints).toEqual([])
     })
 
     it("should return 400 if todo contains bogus data", async () => {
@@ -658,7 +657,7 @@ describe('AppController (e2e)', () => {
   
       const my_mock_1 = mocks.post.m0
       const my_mock_2 = mocks.post.m2
-      
+
       await postMe(my_mock_1)
       await postMe(my_mock_2)
 
@@ -668,7 +667,7 @@ describe('AppController (e2e)', () => {
         .expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBeGreaterThan(2);
+      expect(response.body.length).toBeGreaterThan(1);
 
       const first = response.body[0]
 
@@ -690,7 +689,7 @@ describe('AppController (e2e)', () => {
 
       expect(second.due_date).toBe(my_mock_1.due_date)
 
-      expect(second.order_number).toBe(0)
+      expect(second.order_number).toBe(1)
 
       expect(second.title).toBe(my_mock_1.title)
 

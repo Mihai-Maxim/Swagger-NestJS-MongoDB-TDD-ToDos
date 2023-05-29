@@ -44,19 +44,52 @@ export class TodosService {
     return count;
   }
 
+  async getAllTodos(): Promise<Todo[]> {
+    const todos = await this.todoModel
+        .find({}, { _id: 0, __v: 0 })
+        .sort({ order_number: 1 })
+        .lean()
+        .exec();
+        
+    if (todos && todos.length) {
+      todos.forEach((todo: any) => {
+        if (todo.checkpoints && todo.checkpoints.length) {
+          todo.checkpoints = todo.checkpoints.map((checkpoint: any) => {
+            const { _id, ...rest } = checkpoint;
+            return rest;
+          });
+        }
+
+        if (todo.checkpoints && !todo.checkpoints.length) {
+            delete todo.checkpoints
+        }
+      });
+
+    }
+  
+    if (todos && todos.length) {
+        return todos
+    } 
+
+    return []
+  }
+
   async getTodoByOrderNumber(orderNumber: number): Promise<Todo | null> {
     const todo = await this.todoModel.findOne({ order_number: orderNumber }, { _id: 0, __v: 0 }).lean().exec();
 
     if (todo && todo.checkpoints) {
-      todo.checkpoints = todo.checkpoints.map((checkpoint: any) => {
-        const { _id, ...rest } = checkpoint;
-        return rest;
-      });
+      if (todo.checkpoints.length) {
+        todo.checkpoints = todo.checkpoints.map((checkpoint: any) => {
+            const { _id, ...rest } = checkpoint;
+            return rest;
+        });
+      } else {
+        delete todo.checkpoints
+      }
     }
     return todo;
   }
   
-
   async createTodo(postTodoDto: PostTodoDto): Promise<Todo | Error> {
 
     const { order_number } = postTodoDto
