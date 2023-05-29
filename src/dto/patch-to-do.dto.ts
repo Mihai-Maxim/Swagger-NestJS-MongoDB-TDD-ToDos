@@ -1,21 +1,28 @@
-import { IsInt, IsString, IsNotEmpty, IsDateString, IsEnum, IsArray, ValidateNested, Validate, IsBoolean, registerDecorator, isDateString, IsOptional } from 'class-validator';
-import { Transform } from "class-transformer"
+import { IsInt, IsString, IsNotEmpty, IsDateString, IsEnum, IsArray, ValidateNested, Validate, IsBoolean, registerDecorator, isDateString, IsOptional, IsNumber, ValidationOptions, ValidationArguments } from 'class-validator';
+
 import { Type } from 'class-transformer';
 
 enum TodoStatus {
   InBacklog = 'in_backlog',
   InProgress = 'in_progress',
   Blocked = 'blocked',
+  Completed = 'completed',
 }
 
 class TaskCheckpoint {
   @IsString()
   @IsNotEmpty()
+  @IsOptional()
   description: string;
 
   @IsBoolean()
   @IsNotEmpty()
-  completed: boolean = false;
+  @IsOptional()
+  completed: boolean
+
+  @IsNumber()
+  @IsOptional()
+  index: number
 }
 
 function IsDueDateValid(validationOptions?: any) {
@@ -40,12 +47,13 @@ function IsDueDateValid(validationOptions?: any) {
   };
 }
 
-export class PostTodoDto {
+export class PatchTodoDto {
   @IsInt()
   @IsOptional()
   order_number: number;
 
   @IsString()
+  @IsOptional()
   @IsNotEmpty()
   title: string;
 
@@ -59,7 +67,8 @@ export class PostTodoDto {
   due_date: string;
 
   @IsEnum(TodoStatus)
-  status: TodoStatus = TodoStatus.InBacklog
+  @IsOptional()
+  status: TodoStatus
 
   @IsArray()
   @IsOptional()

@@ -1,4 +1,4 @@
-import { IsInt, IsString, IsNotEmpty, IsDateString, IsEnum, IsArray, ValidateNested, Validate, IsBoolean, registerDecorator, isDateString, IsOptional } from 'class-validator';
+import { IsInt, IsString, IsNotEmpty, IsDateString, IsEnum, IsArray, ValidateNested, Validate, IsBoolean, registerDecorator, isDateString, IsOptional, isNotEmpty } from 'class-validator';
 import { Transform } from "class-transformer"
 import { Type } from 'class-transformer';
 
@@ -40,9 +40,9 @@ function IsDueDateValid(validationOptions?: any) {
   };
 }
 
-export class PostTodoDto {
+export class PutTodoDto {
   @IsInt()
-  @IsOptional()
+  @IsNotEmpty()
   order_number: number;
 
   @IsString()
@@ -55,11 +55,12 @@ export class PostTodoDto {
 
   @IsDateString()
   @IsDueDateValid()
-  @IsOptional()
+  @IsNotEmpty()
   due_date: string;
 
   @IsEnum(TodoStatus)
-  status: TodoStatus = TodoStatus.InBacklog
+  @IsNotEmpty()
+  status: TodoStatus
 
   @IsArray()
   @IsOptional()

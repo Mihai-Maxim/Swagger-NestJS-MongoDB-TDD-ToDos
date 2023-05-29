@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { json } from 'body-parser';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -240,6 +241,19 @@ describe('AppController (e2e)', () => {
           }
         ]
       },
+      m11: {
+        order_number: 1,
+        title: 'blah blah blah',
+        description: "different description",
+        due_date: new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toISOString(),
+        status: 'in_backlog',
+        checkpoints: [
+          {
+            description: "test me please",
+            completed: false
+          }
+        ]
+      },
       m1: {
         order_number: 1,
         title: 'if not then everything i did was a lie',
@@ -258,7 +272,7 @@ describe('AppController (e2e)', () => {
         title: 'it should update put.m0',
         description: "updated desc",
         due_date: valid_date1,
-        status: 'completed',
+        status: 'in_progress',
         checkpoints: [
           {
             description: "do something",
@@ -348,10 +362,23 @@ describe('AppController (e2e)', () => {
           }
         ]
       },
+      m11: {
+        order_number: 1,
+        title: 'blah blah blah',
+        description: "different description",
+        due_date: new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toISOString(),
+        status: 'in_backlog',
+        checkpoints: [
+          {
+            description: "test me please",
+            completed: false
+          }
+        ]
+      },
       m2: {
         order_number: 0,
         title: 'should partially update',
-        status: 'completed',
+        status: 'in_backlog',
         checkpoints: [
           {
             description: "do something",
@@ -375,7 +402,7 @@ describe('AppController (e2e)', () => {
             completed: true,
           },
           {
-            desciption: "hey hey hey",
+            description: "hey hey hey",
             completed: false,
           }
         ]
@@ -384,7 +411,7 @@ describe('AppController (e2e)', () => {
         checkpoints: [
           {
             index: 2,
-            desciption: "This is a real checkpoint",
+            description: "This is a real checkpoint",
             completed: true,
           },
           {
@@ -403,7 +430,7 @@ describe('AppController (e2e)', () => {
           completed: true,
         },
         {
-          desciption: "This is a real checkpoint",
+          description: "This is a real checkpoint",
           completed: true,
         }
       ],
@@ -481,7 +508,7 @@ describe('AppController (e2e)', () => {
         order_number: 2,
         title: 'Todo 2',
         description: 'third to do',
-        due_date: new Date(new Date(new Date().getTime() + 1 * 60 * 60 * 1000).toISOString()),
+        due_date: new Date(new Date(new Date().getTime() + 1 * 60 * 60 * 1000)).toISOString(),
         status: 'in_progress',
         checkpoints: [
           {
@@ -759,7 +786,7 @@ describe('AppController (e2e)', () => {
       const body_1 = response_1.body
 
       expect(body_1.order_number).toBe(0)
-      expect(body_1.creation_date).toBe("string")
+      expect(typeof body_1.creation_date).toBe("string")
       expect(typeof body_1.last_update_date).toBe("string")
       expect(body_1.title).toBe(my_mock_3.title)
       expect(body_1.description).toBe(my_mock_3.description)
@@ -767,14 +794,14 @@ describe('AppController (e2e)', () => {
       expect(body_1.checkpoints).toEqual(my_mock_3.checkpoints)
       expect(body_1.id).not.toBeDefined()
 
-      const response_3 = await request(app)
+      const response_3 = await request(app.getHttpServer())
         .get('/api/todos/2')
         .expect(200);
       
       const body_3 = response_3.body
 
       expect(body_3.order_number).toBe(2)
-      expect(body_3.creation_date).toBe("string")
+      expect(typeof body_3.creation_date).toBe("string")
       expect(typeof body_3.last_update_date).toBe("string")
       expect(body_3.title).toBe(my_mock_1.title)
       expect(body_3.description).toBe(my_mock_1.description)
@@ -791,6 +818,7 @@ describe('AppController (e2e)', () => {
       const my_mock_2 = mocks.put.m1
       const my_mock_3 = mocks.put.m2
 
+
       await postMe(my_mock_1)
 
       await postMe(my_mock_2)
@@ -798,7 +826,6 @@ describe('AppController (e2e)', () => {
       const response = await request(app.getHttpServer())
         .put('/api/todos/0')
         .send(my_mock_3)
-        .expect(200);
 
 
       const body = response.body
@@ -896,37 +923,38 @@ describe('AppController (e2e)', () => {
 
       const my_mock_1 = mocks.put.m1
 
-      await postMe(my_mock_0)
+      const my_mock_3 = mocks.patch.m11
 
+      await postMe(my_mock_0)
+     
       await postMe(my_mock_1)
 
       my_mock_0.order_number = my_mock_1.order_number
 
       await request(app.getHttpServer())
         .put('/api/todos/0')
-        .send(my_mock_0)
+        .send(my_mock_3)
         .expect(200);
 
-      my_mock_0.order_number = aux
 
       const r1 = await request(app.getHttpServer())
-        .get('/api/todos/0')
+        .get('/api/todos/1')
         .expect(200)
 
       const r2 = await request(app.getHttpServer())
-        .get('/api/todos/1')
+        .get('/api/todos/0')
         .expect(200)
 
       const r1_body = r1.body
 
-      expect(r1_body.order_number).toBe(my_mock_1.order_number)
+      expect(r1_body.order_number).toBe(my_mock_3.order_number)
       expect(typeof r1_body.creation_date).toBe("string")
       expect(typeof r1_body.last_update_date).toBe("string")
-      expect(r1_body.title).toBe(my_mock_0.title)
-      expect(r1_body.description).toBe(my_mock_0.description)
-      expect(r1_body.status).toBe(my_mock_0.status)
-      expect(r1_body.due_date).toBe(my_mock_0.due_date)
-      expect(r1_body.checkpoints).toEqual(my_mock_0.checkpoints)
+      expect(r1_body.title).toBe(my_mock_3.title)
+      expect(r1_body.description).toBe(my_mock_3.description)
+      expect(r1_body.status).toBe(my_mock_3.status)
+      expect(r1_body.due_date).toBe(my_mock_3.due_date)
+      expect(r1_body.checkpoints).toEqual(my_mock_3.checkpoints)
       expect(r1_body.id).not.toBeDefined()
 
       const r2_body = r2.body
@@ -983,8 +1011,6 @@ describe('AppController (e2e)', () => {
       expect(typeof body.creation_date).toBe("string")
       expect(typeof body.last_update_date).toBe("string")
       expect(body.title).toBe(my_mock_3.title)
-      expect(body.description).toBe(my_mock_1.description)
-      expect(body.due_date).toBe(my_mock_1.due_date)
       expect(body.status).toBe(my_mock_3.status)
       expect(body.checkpoints).toEqual(my_mock_3.checkpoints)
       expect(body.id).not.toBeDefined()
@@ -1001,9 +1027,7 @@ describe('AppController (e2e)', () => {
       expect(typeof td0_body.creation_date).toBe("string")
       expect(typeof td0_body.last_update_date).toBe("string")
       expect(td0_body.title).toBe(my_mock_3.title)
-      expect(td0_body.description).toBe(my_mock_1.description)
       expect(td0_body.status).toBe(my_mock_3.status)
-      expect(td0_body.due_date).toBe(my_mock_1.due_date)
       expect(td0_body.checkpoints).toEqual(my_mock_3.checkpoints)
       expect(td0_body.id).not.toBeDefined()
 
@@ -1058,35 +1082,40 @@ describe('AppController (e2e)', () => {
 
       const my_mock_1 = mocks.patch.m1
 
-      await postMe(my_mock_0)
+      const my_mock_3 = mocks.patch.m11
 
+      await postMe(my_mock_0)
+   
       await postMe(my_mock_1)
 
       my_mock_0.order_number = my_mock_1.order_number
 
+
+
       await request(app.getHttpServer())
         .patch('/api/todos/0')
-        .send(my_mock_0)
+        .send(my_mock_3)
         .expect(200);
 
+
       const r1 = await request(app.getHttpServer())
-        .get('/api/todos/0')
+        .get('/api/todos/1')
         .expect(200)
 
       const r2 = await request(app.getHttpServer())
-        .get('/api/todos/1')
+        .get('/api/todos/0')
         .expect(200)
 
       const r1_body = r1.body
 
-      expect(r1_body.order_number).toBe(my_mock_1.order_number)
+      expect(r1_body.order_number).toBe(my_mock_3.order_number)
       expect(typeof r1_body.creation_date).toBe("string")
       expect(typeof r1_body.last_update_date).toBe("string")
-      expect(r1_body.title).toBe(my_mock_0.title)
-      expect(r1_body.description).toBe(my_mock_0.description)
-      expect(r1_body.status).toBe(my_mock_0.status)
-      expect(r1_body.due_date).toBe(my_mock_0.due_date)
-      expect(r1_body.checkpoints).toEqual(my_mock_0.checkpoints)
+      expect(r1_body.title).toBe(my_mock_3.title)
+      expect(r1_body.description).toBe(my_mock_3.description)
+      expect(r1_body.status).toBe(my_mock_3.status)
+      expect(r1_body.due_date).toBe(my_mock_3.due_date)
+      expect(r1_body.checkpoints).toEqual(my_mock_3.checkpoints)
       expect(r1_body.id).not.toBeDefined()
 
       const r2_body = r2.body

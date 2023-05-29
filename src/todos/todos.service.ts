@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { PostTodoDto } from '../dto/post-to-do.dto';
 import { Todo } from '../interfaces/todo.interface';
 import { InsertIndex } from "../interfaces/insertindex.interface"
+import { CheckpointsOperation } from 'src/interfaces/checkpointsOperation.interface';
 
 @Injectable()
 export class TodosService {
@@ -31,6 +32,21 @@ export class TodosService {
     };
     
   }
+
+  async interchangeOrderNumbers(orderNumber1: number, orderNumber2: number): Promise<void> {
+    // Retrieve the todos based on their order_number
+    const todo1 = await this.todoModel.findOne({ order_number: orderNumber1 });
+    const todo2 = await this.todoModel.findOne({ order_number: orderNumber2 });
+  
+    // Swap the order numbers
+    const tempOrderNumber = todo1.order_number;
+    todo1.order_number = todo2.order_number;
+    todo2.order_number = tempOrderNumber;
+  
+    // Save the updated todos
+    await Promise.all([todo1.save(), todo2.save()]);
+  }
+  
 
   async incrementOrderNumbers(givenNumber: number): Promise<void> {
     await this.todoModel.updateMany(
@@ -88,6 +104,92 @@ export class TodosService {
       }
     }
     return todo;
+  }
+  
+
+  async deleteTodoAndDecrementOrderNumbers(orderNumber: number): Promise<void> {
+    await this.todoModel.deleteOne({ order_number: orderNumber });
+  
+    await this.todoModel.updateMany({ order_number: { $gt: orderNumber } }, { $inc: { order_number: -1 } });
+    
+  }
+
+  async patchTodoWithCheckpoints(orderNumber: number, otherTodo: Todo, checkpointsOperation: CheckpointsOperation): Promise<Todo> {
+
+    const todo = await this.todoModel.findOne({ order_number: orderNumber }, { _id: 0, __v: 0 }).lean().exec();
+
+    let patchedTodo: Todo = { ...todo };
+  
+    if (checkpointsOperation.isBlindUpdate) {
+      patchedTodo.checkpoints = otherTodo.checkpoints;
+    } else if (checkpointsOperation.isIndexUpdate) {
+      otherTodo.checkpoints.forEach((newCheckpoint) => {
+        if (newCheckpoint.index >= 0 && newCheckpoint.index < patchedTodo.checkpoints.length) {
+          patchedTodo.checkpoints[newCheckpoint.index] = {
+            ...patchedTodo.checkpoints[newCheckpoint.index],
+            ...newCheckpoint,
+          };
+        }
+      });
+
+      if (patchedTodo.checkpoints && patchedTodo.checkpoints.length) {
+        for (let i = 0; i < patchedTodo.checkpoints.length; i++) {
+            delete patchedTodo.checkpoints[i].index
+        }
+      }
+    } else if (checkpointsOperation.isDelete) {
+
+      const indexesToDelete = otherTodo.checkpoints.map((checkpoint) => checkpoint.index);
+      patchedTodo.checkpoints = patchedTodo.checkpoints.filter(
+        (checkpoint, index) => !indexesToDelete.includes(index)
+      );
+    }
+
+    delete otherTodo.checkpoints
+
+    patchedTodo = {
+        ...patchedTodo,
+        ...otherTodo
+    }
+
+    await this.todoModel.updateOne({ order_number: orderNumber }, patchedTodo);
+
+    const updatedToDo = this.getTodoByOrderNumber(orderNumber)
+
+    return updatedToDo;
+  }
+
+  async getCheckpointsOperation(checkpoints: any) {
+
+    const containsOnlyIndex = checkpoints.every((checkpoint: any) =>
+      checkpoint.hasOwnProperty('index') &&
+      !checkpoint.hasOwnProperty('description') &&
+      !checkpoint.hasOwnProperty('completed')
+    );
+
+    const blindUpdate = checkpoints.every((checkpoint: any) => {
+        return !checkpoint.hasOwnProperty('index') && (checkpoint.hasOwnProperty('description') ||checkpoint.hasOwnProperty('completed'))
+    })
+    const indexUpdate = checkpoints.every((checkpoint: any) => {
+        return checkpoint.hasOwnProperty('index') && (checkpoint.hasOwnProperty('description') || checkpoint.hasOwnProperty('completed'))
+    })
+  
+    const response = {
+        isBlindUpdate: blindUpdate,
+        isIndexUpdate: indexUpdate,
+        isDelete: containsOnlyIndex,
+    }
+
+    return response
+  }
+
+     
+  async checkIndexesExist(orderNumber: number, indexes: number[]): Promise<boolean> {
+
+    const todo = await this.todoModel.findOne({ order_number: orderNumber });
+
+    const checkpointIndexes = todo.checkpoints.map((checkpoint, index) => index);
+    return indexes.every((index) => checkpointIndexes.includes(index));
   }
   
   async createTodo(postTodoDto: PostTodoDto): Promise<Todo | Error> {
